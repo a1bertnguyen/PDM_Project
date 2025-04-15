@@ -1,0 +1,18 @@
+server:
+  port: 2055
+
+spring:
+  application:
+    name: USER_SERVICE
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: jdbc:mysql://localhost:3307/pdm_project
+    username: root
+    password: Qu@ngminh80
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+
