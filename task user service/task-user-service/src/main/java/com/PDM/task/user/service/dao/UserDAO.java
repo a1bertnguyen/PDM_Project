@@ -60,7 +60,6 @@ public class UserDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(">>> Inserting user: " + user.getFullName());
 
         return user;
     }
