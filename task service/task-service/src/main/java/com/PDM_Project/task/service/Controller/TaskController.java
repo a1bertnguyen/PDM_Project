@@ -35,7 +35,7 @@ public class TaskController {
     @GetMapping("/{id}")
     public ResponseEntity<Task> getTaskById(@PathVariable long id,
                                             @RequestHeader("Authorization") String jwt) throws Exception {
-        userService.getUserProfile(jwt); 
+        userService.getUserProfile(jwt);
         Task task = taskService.getTaskByID(id);
         return new ResponseEntity<>(task, HttpStatus.OK);
     }
