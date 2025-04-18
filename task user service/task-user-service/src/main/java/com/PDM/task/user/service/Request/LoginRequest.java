@@ -1,6 +1,5 @@
 package com.PDM.task.user.service.Request;
 
-import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

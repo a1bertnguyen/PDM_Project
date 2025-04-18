@@ -1,18 +1,19 @@
 package com.zosh.task_submission_service.service;
 
+import com.zosh.task_submission_service.modal.Submission;
 import com.zosh.task_submission_service.modal.TaskDto;
-import com.zosh.task_submission_service.repository.SubmissionRepository;
+import com.zosh.task_submission_service.repository.SubmissionJdbcRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.zosh.task_submission_service.modal.Submission;
 
 import java.time.LocalDateTime;
 import java.util.List;
-@Service
 
+@Service
 public class SubmissionServiceImplementation implements SubmissionService {
+
     @Autowired
-    private SubmissionRepository submissionRepository;
+    private SubmissionJdbcRepository submissionRepository;
 
     @Autowired
     private TaskService taskService;
@@ -20,11 +21,12 @@ public class SubmissionServiceImplementation implements SubmissionService {
     @Override
     public Submission submitTask(Long taskId, String githublink, Long userID, String jwt) throws Exception {
         TaskDto task = taskService.getTaskById(taskId, jwt);
-        if (task != null){
+        if (task != null) {
             Submission submission = new Submission();
             submission.setTaskId(taskId);
             submission.setUserId(userID);
             submission.setGithublink(githublink);
+            submission.setStatus("PENDING");
             submission.setSubmissionTime(LocalDateTime.now());
             return submissionRepository.save(submission);
         }
@@ -33,8 +35,8 @@ public class SubmissionServiceImplementation implements SubmissionService {
 
     @Override
     public Submission getTaskSubmissionById(Long submissionId) throws Exception {
-        return submissionRepository.findById(submissionId).orElseThrow(()->
-                new Exception("Task Submission not found with id : " + submissionId));
+        return submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new Exception("Task Submission not found with id : " + submissionId));
     }
 
     @Override
@@ -51,10 +53,14 @@ public class SubmissionServiceImplementation implements SubmissionService {
     public Submission acceptDeclineSubmission(Long id, String status) throws Exception {
         Submission submission = getTaskSubmissionById(id);
         submission.setStatus(status);
-        if (status.equals("ACCEPT")){
+
+        // Cập nhật trạng thái trong DB
+        submissionRepository.updateStatus(id, status);
+
+        if ("ACCEPT".equalsIgnoreCase(status)) {
             taskService.completeTask(submission.getTaskId());
         }
 
-        return submissionRepository.save(submission);
+        return submission;
     }
 }

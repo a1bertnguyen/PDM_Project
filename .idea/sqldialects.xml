@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="SqlDialectMappings">
-    <file url="file://$PROJECT_DIR$/task service/task-service/src/main/java/com/PDM_Project/task/service/DAO/TaskDAO.java" dialect="GenericSQL" />
-    <file url="file://$PROJECT_DIR$/task user service/task-user-service/src/main/java/com/PDM/task/user/service/dao/UserDAO.java" dialect="GenericSQL" />
-  </component>
-</project>

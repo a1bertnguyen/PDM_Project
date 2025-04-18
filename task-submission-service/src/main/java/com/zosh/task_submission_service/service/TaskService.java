@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name = "SUBMISSION-SERVICE", url = "http://localhost:2054/")
+@FeignClient(name = "TASK-SERVICE", url = "http://localhost:2054/")
 public interface TaskService {
 
     @GetMapping("/api/tasks/{id}")
