@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name = "TASK-SERVICE", url = "http://localhost:2054/")
+@FeignClient(name = "TASK-SERVICE", url = "http://localhost:2056/")
 public interface TaskService {
 
     @GetMapping("/api/tasks/{id}")
@@ -15,8 +15,10 @@ public interface TaskService {
             @PathVariable Long id,
             @RequestHeader("Authorization") String jwt) throws Exception;
 
-    @PutMapping("api/tasks/{id}/complete")
+    @PutMapping("/api/tasks/{id}/complete")
     public TaskDto completeTask(
-            @PathVariable Long id) throws Exception;
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String jwt) throws Exception;
+
 
 }

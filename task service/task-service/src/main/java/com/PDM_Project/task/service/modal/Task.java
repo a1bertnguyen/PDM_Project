@@ -30,4 +30,6 @@ public class Task {
     private LocalDateTime deadline;
 
     private LocalDateTime createdAt;
+
+    private Long createdBy;
 }

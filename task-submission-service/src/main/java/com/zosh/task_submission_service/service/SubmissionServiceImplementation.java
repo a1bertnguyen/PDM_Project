@@ -50,7 +50,7 @@ public class SubmissionServiceImplementation implements SubmissionService {
     }
 
     @Override
-    public Submission acceptDeclineSubmission(Long id, String status) throws Exception {
+    public Submission acceptDeclineSubmission(Long id, String status, String jwt) throws Exception {
         Submission submission = getTaskSubmissionById(id);
         submission.setStatus(status);
 
@@ -58,9 +58,10 @@ public class SubmissionServiceImplementation implements SubmissionService {
         submissionRepository.updateStatus(id, status);
 
         if ("ACCEPT".equalsIgnoreCase(status)) {
-            taskService.completeTask(submission.getTaskId());
+            taskService.completeTask(submission.getTaskId(), jwt);
         }
 
         return submission;
     }
+
 }

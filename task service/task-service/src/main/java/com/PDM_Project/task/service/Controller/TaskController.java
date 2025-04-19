@@ -22,15 +22,14 @@ public class TaskController {
     @Autowired
     private UserService userService;
 
-
     @PostMapping
     public ResponseEntity<Task> createTask(@RequestBody Task task,
                                            @RequestHeader("Authorization") String jwt) throws Exception {
         UserDto user = userService.getUserProfile(jwt);
+        task.setCreatedBy(user.getId());
         Task createdTask = taskService.createdTask(task, user.getRole());
         return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
     }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<Task> getTaskById(@PathVariable long id,
@@ -39,7 +38,6 @@ public class TaskController {
         Task task = taskService.getTaskByID(id);
         return new ResponseEntity<>(task, HttpStatus.OK);
     }
-
 
     @GetMapping
     public ResponseEntity<List<Task>> getAllTask(
@@ -50,7 +48,6 @@ public class TaskController {
         return new ResponseEntity<>(tasks, HttpStatus.OK);
     }
 
-
     @GetMapping("/user")
     public ResponseEntity<List<Task>> getAssignedUsersTask(
             @RequestParam(required = false) TaskStatus status,
@@ -59,7 +56,6 @@ public class TaskController {
         List<Task> tasks = taskService.assignedUsersTask(user.getId(), status);
         return new ResponseEntity<>(tasks, HttpStatus.OK);
     }
-
 
     @PutMapping("/{id}/user/{userid}/assign")
     public ResponseEntity<Task> assignTaskToUser(
@@ -71,7 +67,6 @@ public class TaskController {
         return new ResponseEntity<>(task, HttpStatus.OK);
     }
 
-
     @PutMapping("/{id}")
     public ResponseEntity<Task> updateTask(
             @PathVariable long id,
@@ -81,7 +76,6 @@ public class TaskController {
         Task updatedTask = taskService.updateTask(id, request, user.getId());
         return new ResponseEntity<>(updatedTask, HttpStatus.OK);
     }
-
 
     @PutMapping("/{id}/complete")
     public ResponseEntity<Task> completeTask(

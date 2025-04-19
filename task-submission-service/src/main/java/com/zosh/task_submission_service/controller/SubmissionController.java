@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/submissioms")
+@RequestMapping("/api/submissions")
 public class SubmissionController {
 
     @Autowired
@@ -68,11 +68,12 @@ public class SubmissionController {
     @PutMapping("/{id}")
     public ResponseEntity<Submission> acceptOrDeclineSubmission(
             @PathVariable Long id,
-            @RequestParam ("status") String status,
+            @RequestParam("status") String status,
             @RequestHeader("Authorization") String jwt
     ) throws Exception {
         UserDto user = userService.getUserProfile(jwt);
-        Submission submission = submissionService.acceptDeclineSubmission(id, status);
+        Submission submission = submissionService.acceptDeclineSubmission(id, status, jwt);
         return new ResponseEntity<>(submission, HttpStatus.CREATED);
     }
+
 }
