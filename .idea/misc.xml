@@ -8,6 +8,7 @@
         <option value="$PROJECT_DIR$/task user service/task-user-service/pom.xml" />
         <option value="$PROJECT_DIR$/eureka server/eureka-server/pom.xml" />
         <option value="$PROJECT_DIR$/task-submission-service/pom.xml" />
+        <option value="$PROJECT_DIR$/gateway/pom.xml" />
       </list>
     </option>
   </component>
