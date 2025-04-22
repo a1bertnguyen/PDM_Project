@@ -54,7 +54,6 @@ public class SubmissionServiceImplementation implements SubmissionService {
         Submission submission = getTaskSubmissionById(id);
         submission.setStatus(status);
 
-        // Cập nhật trạng thái trong DB
         submissionRepository.updateStatus(id, status);
 
         if ("ACCEPT".equalsIgnoreCase(status)) {

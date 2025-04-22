@@ -13,9 +13,9 @@
 	</parent>
 
 	<groupId>com.PDM</groupId>
-	<artifactId>task-user-service</artifactId>
+	<artifactId>task-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>task-user-service</name>
+	<name>task-service</name>
 	<description>User service for task management project</description>
 
 	<properties>
@@ -84,6 +84,13 @@
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
+
+		<!-- Eureka Client -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+		</dependency>
+
 
 		<!-- Testing -->
 		<dependency>
