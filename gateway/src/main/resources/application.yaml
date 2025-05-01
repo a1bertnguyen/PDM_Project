@@ -4,44 +4,41 @@ server:
 spring:
   application:
     name: GATEWAY-SERVICE
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: USER_SERVICE
+            uri: lb://USER_SERVICE  # Chú ý: Đảm bảo tên service chính xác như đã đăng ký trên Eureka
+            predicates:
+              - Path=/auth/**,/users/**,/api/users/**
 
-  spring:
-    cloud:
-      gateway:
-        mvc:
-          default-filters:
-            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-          routes:
-            - id: USER_SERVICE
-              uri: lb://USER_SERVICE
-              predicates:
-                - Path=/auth/**,/users/**,/api/users/**
+          - id: TASK_SERVICE
+            uri: lb://TASK_SERVICE  # Chú ý: Đảm bảo tên service chính xác như đã đăng ký trên Eureka
+            predicates:
+              - Path=/api/tasks/**,/tasks/**
 
-            - id: TASK_SERVICE
-              uri: lb://TASK_SERVICE
-              predicates:
-                - Path=/api/tasks/**,/tasks/**
+          - id: SUBMISSION_SERVICE
+            uri: lb://SUBMISSION_SERVICE  # Chú ý: Đảm bảo tên service chính xác như đã đăng ký trên Eureka
+            predicates:
+              - Path=/api/submissions/**,/submissions/**
+      httpclient:
+        connect-timeout: 3000
+        response-timeout: 10s
 
-            - id: SUBMISSION_SERVICE
-              uri: lb://SUBMISSION_SERVICE
-              predicates:
-                - Path=/api/submissions/**,/submissions/**
-          globalcors:
-            cors-configurations:
-              '[/**]':
-                allowed-origins: "*"
-                allowed-methods: "*"
-                allowed-headers: "*"
-        globalcors:
-          cors-configurations:
-            '[/**]':
-              allowed-origins: "*"
-              allowed-methods: "*"
-              allowed-headers: "*"
+  # Cấu hình CORS riêng biệt cho Spring MVC
+  mvc:
+    cors:
+      mapping: /**
+      allowed-origins: "*"
+      allowed-methods: GET, POST, PUT, DELETE, PATCH
+      allowed-headers: "*"
+      allow-credentials: true
 
 eureka:
   instance:
     prefer-ip-address: true
+    hostname: localhost
   client:
     register-with-eureka: true
     fetch-registry: true
@@ -51,3 +48,5 @@ eureka:
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
+    org.springframework.web: DEBUG
+    com.PDM.gateway: DEBUG
