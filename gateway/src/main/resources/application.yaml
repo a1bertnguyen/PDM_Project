@@ -6,47 +6,37 @@ spring:
     name: GATEWAY-SERVICE
   cloud:
     gateway:
-      mvc:
-        routes:
-          - id: USER_SERVICE
-            uri: lb://USER_SERVICE  # Chú ý: Đảm bảo tên service chính xác như đã đăng ký trên Eureka
-            predicates:
-              - Path=/auth/**,/users/**,/api/users/**
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 
-          - id: TASK_SERVICE
-            uri: lb://TASK_SERVICE  # Chú ý: Đảm bảo tên service chính xác như đã đăng ký trên Eureka
-            predicates:
-              - Path=/api/tasks/**,/tasks/**
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/auth/**,/users/**,/api/users/**
 
-          - id: SUBMISSION_SERVICE
-            uri: lb://SUBMISSION_SERVICE  # Chú ý: Đảm bảo tên service chính xác như đã đăng ký trên Eureka
-            predicates:
-              - Path=/api/submissions/**,/submissions/**
-      httpclient:
-        connect-timeout: 3000
-        response-timeout: 10s
+        - id: task-service
+          uri: lb://task-service
+          predicates:
+            - Path=/api/tasks/**,/tasks/**
 
-  # Cấu hình CORS riêng biệt cho Spring MVC
-  mvc:
-    cors:
-      mapping: /**
-      allowed-origins: "*"
-      allowed-methods: GET, POST, PUT, DELETE, PATCH
-      allowed-headers: "*"
-      allow-credentials: true
+        - id: submission-service
+          uri: lb://submission-service
+          predicates:
+            - Path=/api/submissions/**,/submissions/**
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "*"
+            allowed-methods: "*"
+            allowed-headers: "*"
 
 eureka:
   instance:
     prefer-ip-address: true
-    hostname: localhost
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8070/eureka/
-
-logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.web: DEBUG
-    com.PDM.gateway: DEBUG

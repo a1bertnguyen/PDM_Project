@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: SUBMISSION_SERVICE
+    name: submission-service
 
   datasource:
     url: jdbc:mysql://localhost:3307/pdm_project

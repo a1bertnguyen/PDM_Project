@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: TASK_SERVICE
+    name: task-service
 
   datasource:
     url: jdbc:mysql://localhost:3307/pdm_project
