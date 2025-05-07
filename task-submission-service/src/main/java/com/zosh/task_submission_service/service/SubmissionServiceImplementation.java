@@ -2,7 +2,7 @@ package com.zosh.task_submission_service.service;
 
 import com.zosh.task_submission_service.modal.Submission;
 import com.zosh.task_submission_service.modal.TaskDto;
-import com.zosh.task_submission_service.repository.SubmissionJdbcRepository;
+import com.zosh.task_submission_service.repository.SubmissionDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +13,7 @@ import java.util.List;
 public class SubmissionServiceImplementation implements SubmissionService {
 
     @Autowired
-    private SubmissionJdbcRepository submissionRepository;
+    private SubmissionDAO submissionRepository;
 
     @Autowired
     private TaskService taskService;

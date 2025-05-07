@@ -16,6 +16,12 @@ public class UserServiceImplementation implements UserService {
         String email = JwtProvider.getEmailFromJwtToken(jwt);
         return userDAO.findByEmail(email);
     }
+    @Override
+    public List<User> searchUsers(String keyword, String jwt) {
+        String email = JwtProvider.getEmailFromJwtToken(jwt);
+        return userDAO.searchUsersByName(keyword, email);
+    }
+
 
     @Override
     public List<User> getAllUsers() {

@@ -15,7 +15,7 @@ public class TaskDAO {
 
     public Task save(Task task) throws SQLException {
         if (task.getId() == null) {
-            String sql = "INSERT INTO tasks (title, description, image, assigned_user_id, status, deadline, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO tasks (title, description, image, assigned_user_id, status, deadline, created_at,user_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, task.getTitle());
                 stmt.setString(2, task.getDescription());
@@ -24,6 +24,9 @@ public class TaskDAO {
                 stmt.setString(5, task.getStatus().toString());
                 stmt.setTimestamp(6, Timestamp.valueOf(task.getDeadline()));
                 stmt.setTimestamp(7, Timestamp.valueOf(task.getCreatedAt()));
+                stmt.setLong(8, task.getUserId());
+                stmt.setLong(9, task.getCreatedBy());
+
                 stmt.executeUpdate();
 
                 ResultSet rs = stmt.getGeneratedKeys();
@@ -32,7 +35,7 @@ public class TaskDAO {
                 }
             }
         } else {
-            String sql = "UPDATE tasks SET title = ?, description = ?, image = ?, assigned_user_id = ?, status = ?, deadline = ?, created_at = ? WHERE id = ?";
+            String sql = "UPDATE tasks SET title = ?, description = ?, image = ?, assigned_user_id = ?, status = ?, deadline = ?, created_at = ?, created_by = ?, user_id = ? WHERE id = ?";
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
                 stmt.setString(1, task.getTitle());
                 stmt.setString(2, task.getDescription());
@@ -41,7 +44,10 @@ public class TaskDAO {
                 stmt.setString(5, task.getStatus().toString());
                 stmt.setTimestamp(6, Timestamp.valueOf(task.getDeadline()));
                 stmt.setTimestamp(7, Timestamp.valueOf(task.getCreatedAt()));
-                stmt.setLong(8, task.getId());
+                stmt.setLong(8, task.getUserId());
+                stmt.setLong(9, task.getCreatedBy());
+                stmt.setLong(10, task.getId());
+
                 stmt.executeUpdate();
             }
         }
@@ -130,6 +136,28 @@ public class TaskDAO {
         }
         return tags;
     }
+    public boolean isUserInvitedToTask(Long taskId, Long userId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM task_invitations WHERE task_id = ? AND invited_user_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, taskId);
+            stmt.setLong(2, userId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        }
+        return false;
+    }
+    public void inviteUserToTask(Long taskId, Long invitedUserId) throws SQLException {
+        String sql = "INSERT INTO task_invitations (task_id, invited_user_id) VALUES (?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, taskId);
+            stmt.setLong(2, invitedUserId);
+            stmt.executeUpdate();
+        }
+    }
+
+
 
     private Task mapRowToTask(ResultSet rs) throws SQLException {
         Task task = new Task();
@@ -141,6 +169,9 @@ public class TaskDAO {
         task.setStatus(TaskStatus.valueOf(rs.getString("status")));
         task.setDeadline(rs.getTimestamp("deadline").toLocalDateTime());
         task.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        task.setUserId(rs.getLong("user_id"));
+        task.setCreatedBy(rs.getLong("created_by"));
+
         return task;
     }
 }

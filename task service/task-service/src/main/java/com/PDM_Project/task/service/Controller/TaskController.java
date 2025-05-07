@@ -34,10 +34,11 @@ public class TaskController {
     @GetMapping("/{id}")
     public ResponseEntity<Task> getTaskById(@PathVariable long id,
                                             @RequestHeader("Authorization") String jwt) throws Exception {
-        userService.getUserProfile(jwt);
-        Task task = taskService.getTaskByID(id);
+        UserDto user = userService.getUserProfile(jwt);
+        Task task = taskService.getTaskByID(id, user.getId());
         return new ResponseEntity<>(task, HttpStatus.OK);
     }
+
 
     @GetMapping
     public ResponseEntity<List<Task>> getAllTask(
@@ -85,6 +86,18 @@ public class TaskController {
         Task task = taskService.completedTask(id);
         return new ResponseEntity<>(task, HttpStatus.OK);
     }
+
+    @PostMapping("/{taskId}/invite/{userId}")
+    public ResponseEntity<String> inviteUserToTask(@PathVariable Long taskId,
+                                                   @PathVariable Long userId,
+                                                   @RequestHeader("Authorization") String jwt) throws Exception {
+        UserDto requester = userService.getUserProfile(jwt);
+        taskService.inviteUserToTask(taskId, userId, requester.getId());
+        return new ResponseEntity<>("User invited successfully", HttpStatus.OK);
+    }
+
+
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(

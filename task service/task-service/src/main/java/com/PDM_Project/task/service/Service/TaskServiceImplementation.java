@@ -123,4 +123,35 @@ public class TaskServiceImplementation implements TaskService {
             return dao.save(task);
         }
     }
+    @Override
+    public Task getTaskByID(Long id, Long requesterId) throws Exception {
+        try (Connection conn = dataSource.getConnection()) {
+            TaskDAO dao = new TaskDAO(conn);
+            Task task = dao.findById(id).orElseThrow(() -> new Exception("Task not found with id: " + id));
+
+            boolean isOwner = task.getCreatedBy().equals(requesterId);
+            boolean isInvited = dao.isUserInvitedToTask(id, requesterId);
+
+            if (!isOwner && !isInvited) {
+                throw new Exception("Access denied: You are not allowed to access this task.");
+            }
+
+            return task;
+        }
+    }
+    @Override
+    public void inviteUserToTask(Long taskId, Long invitedUserId, Long requesterId) throws Exception {
+        try (Connection conn = dataSource.getConnection()) {
+            TaskDAO dao = new TaskDAO(conn);
+            Task task = dao.findById(taskId).orElseThrow(() -> new Exception("Task not found with id: " + taskId));
+
+            if (!task.getCreatedBy().equals(requesterId)) {
+                throw new Exception("Access denied: only the creator can invite others.");
+            }
+
+            dao.inviteUserToTask(taskId, invitedUserId);
+        }
+    }
+
+
 }

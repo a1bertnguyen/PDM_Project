@@ -41,6 +41,24 @@ public class UserDAO {
         }
         return users;
     }
+    public List<User> searchUsersByName(String keyword, String creatorEmail) {
+        List<User> users = new ArrayList<>();
+        try (Connection conn = DBconnection.DBConnection.getConnection()) {
+            String query = "SELECT * FROM users WHERE fullName LIKE ? AND email != ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setString(1, "%" + keyword + "%");
+            stmt.setString(2, creatorEmail);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                users.add(mapResultSetToUser(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
 
     public User save(User user) {
         try (Connection conn = DBconnection.DBConnection.getConnection()) {

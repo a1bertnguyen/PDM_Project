@@ -23,4 +23,9 @@ public interface TaskService {
 
     Task completedTask(long taskId)throws Exception;
 
+    Task getTaskByID(Long id, Long requesterId) throws Exception;
+
+    void inviteUserToTask(Long taskId, Long invitedUserId, Long requesterId) throws Exception;
+
+
 }

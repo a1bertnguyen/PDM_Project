@@ -8,5 +8,7 @@ public interface UserService {
     public User getUserProfile (String jwt);
 
     public List<User> getAllUsers();
+    List<User> searchUsers(String keyword, String jwt);
+
 
 }

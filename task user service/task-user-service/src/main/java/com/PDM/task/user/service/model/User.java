@@ -16,7 +16,4 @@ public class User {
     private String fullName;
 
 
-
-
-
 }

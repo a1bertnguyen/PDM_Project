@@ -31,5 +31,8 @@ public class Task {
 
     private LocalDateTime createdAt;
 
+    private Long userId;
+
+
     private Long createdBy;
 }
