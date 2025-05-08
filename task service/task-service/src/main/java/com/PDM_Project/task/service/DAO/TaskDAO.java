@@ -156,7 +156,20 @@ public class TaskDAO {
             stmt.executeUpdate();
         }
     }
-
+    public List<Task> findTasksUserIsInvitedTo(Long userId) throws SQLException {
+        List<Task> tasks = new ArrayList<>();
+        String sql = "SELECT t.* FROM tasks t " +
+                "JOIN task_invitations ti ON t.id = ti.task_id " +
+                "WHERE ti.invited_user_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                tasks.add(mapRowToTask(rs));
+            }
+        }
+        return tasks;
+    }
 
 
     private Task mapRowToTask(ResultSet rs) throws SQLException {

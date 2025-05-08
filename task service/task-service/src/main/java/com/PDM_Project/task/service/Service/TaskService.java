@@ -11,7 +11,7 @@ public interface TaskService {
 
     Task getTaskByID(Long id)throws Exception;
 
-    List<Task> getAllTask(TaskStatus status);
+    List<Task> getAllTask(TaskStatus status, Long userId);
 
     Task updateTask(long id, Task updatedTask, Long userId)throws Exception;
 

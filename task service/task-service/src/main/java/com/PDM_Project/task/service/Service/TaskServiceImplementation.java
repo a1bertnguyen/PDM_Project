@@ -42,11 +42,24 @@ public class TaskServiceImplementation implements TaskService {
     }
 
     @Override
-    public List<Task> getAllTask(TaskStatus status) {
+    public List<Task> getAllTask(TaskStatus status, Long userId) {
         try (Connection conn = dataSource.getConnection()) {
             TaskDAO dao = new TaskDAO(conn);
-            List<Task> allTask = dao.findAll();
-            return allTask.stream()
+
+            List<Task> allTasks = dao.findAll();
+
+            // Lọc task: hoặc được tạo bởi người dùng hoặc người dùng được mời
+            return allTasks.stream()
+                    .filter(task -> {
+                        boolean isCreator = task.getCreatedBy().equals(userId);
+                        boolean isInvited = false;
+                        try {
+                            isInvited = dao.isUserInvitedToTask(task.getId(), userId);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                        return isCreator || isInvited;
+                    })
                     .filter(task -> status == null || task.getStatus().name().equalsIgnoreCase(status.toString()))
                     .collect(Collectors.toList());
         } catch (SQLException e) {

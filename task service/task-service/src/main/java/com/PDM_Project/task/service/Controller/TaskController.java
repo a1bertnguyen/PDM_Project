@@ -44,8 +44,8 @@ public class TaskController {
     public ResponseEntity<List<Task>> getAllTask(
             @RequestParam(required = false) TaskStatus status,
             @RequestHeader("Authorization") String jwt) throws Exception {
-        userService.getUserProfile(jwt);
-        List<Task> tasks = taskService.getAllTask(status);
+        UserDto user = userService.getUserProfile(jwt);
+        List<Task> tasks = taskService.getAllTask(status, user.getId()); // Truyền ID người dùng
         return new ResponseEntity<>(tasks, HttpStatus.OK);
     }
 
