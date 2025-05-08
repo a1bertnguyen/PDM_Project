@@ -15,7 +15,7 @@ public class TaskDAO {
 
     public Task save(Task task) throws SQLException {
         if (task.getId() == null) {
-            String sql = "INSERT INTO tasks (title, description, image, assigned_user_id, status, deadline, created_at,user_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO tasks (title, description, image, assigned_user_id, status, deadline, created_at, user_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, task.getTitle());
                 stmt.setString(2, task.getDescription());
@@ -82,6 +82,15 @@ public class TaskDAO {
         }
         return tasks;
     }
+    public void saveTaskInvitation(Long taskId, Long userId) throws SQLException {
+        String sql = "INSERT INTO task_invitations (task_id, invited_user_id) VALUES (?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, taskId);
+            stmt.setLong(2, userId);
+            stmt.executeUpdate();
+        }
+    }
+
 
     public void deleteById(Long id) throws SQLException {
         String sql = "DELETE FROM tasks WHERE id = ?";
@@ -136,41 +145,6 @@ public class TaskDAO {
         }
         return tags;
     }
-    public boolean isUserInvitedToTask(Long taskId, Long userId) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM task_invitations WHERE task_id = ? AND invited_user_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, taskId);
-            stmt.setLong(2, userId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        }
-        return false;
-    }
-    public void inviteUserToTask(Long taskId, Long invitedUserId) throws SQLException {
-        String sql = "INSERT INTO task_invitations (task_id, invited_user_id) VALUES (?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, taskId);
-            stmt.setLong(2, invitedUserId);
-            stmt.executeUpdate();
-        }
-    }
-    public List<Task> findTasksUserIsInvitedTo(Long userId) throws SQLException {
-        List<Task> tasks = new ArrayList<>();
-        String sql = "SELECT t.* FROM tasks t " +
-                "JOIN task_invitations ti ON t.id = ti.task_id " +
-                "WHERE ti.invited_user_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, userId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                tasks.add(mapRowToTask(rs));
-            }
-        }
-        return tasks;
-    }
-
 
     private Task mapRowToTask(ResultSet rs) throws SQLException {
         Task task = new Task();

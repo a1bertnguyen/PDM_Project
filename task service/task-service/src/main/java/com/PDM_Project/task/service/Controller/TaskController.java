@@ -27,6 +27,8 @@ public class TaskController {
                                            @RequestHeader("Authorization") String jwt) throws Exception {
         UserDto user = userService.getUserProfile(jwt);
         task.setCreatedBy(user.getId());
+        task.setUserId(user.getId());
+
         Task createdTask = taskService.createdTask(task, user.getRole());
         return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
     }
@@ -40,12 +42,17 @@ public class TaskController {
     }
 
 
+    // com.PDM_Project.task.service.Controller.TaskController.java
     @GetMapping
     public ResponseEntity<List<Task>> getAllTask(
             @RequestParam(required = false) TaskStatus status,
             @RequestHeader("Authorization") String jwt) throws Exception {
+        // Đảm bảo jwt có đúng định dạng "Bearer ..."
+        if (jwt != null && !jwt.startsWith("Bearer ")) {
+            jwt = "Bearer " + jwt;
+        }
         UserDto user = userService.getUserProfile(jwt);
-        List<Task> tasks = taskService.getAllTask(status, user.getId()); // Truyền ID người dùng
+        List<Task> tasks = taskService.getAllTask(status, user.getId());
         return new ResponseEntity<>(tasks, HttpStatus.OK);
     }
 
@@ -87,14 +94,6 @@ public class TaskController {
         return new ResponseEntity<>(task, HttpStatus.OK);
     }
 
-    @PostMapping("/{taskId}/invite/{userId}")
-    public ResponseEntity<String> inviteUserToTask(@PathVariable Long taskId,
-                                                   @PathVariable Long userId,
-                                                   @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto requester = userService.getUserProfile(jwt);
-        taskService.inviteUserToTask(taskId, userId, requester.getId());
-        return new ResponseEntity<>("User invited successfully", HttpStatus.OK);
-    }
 
 
 

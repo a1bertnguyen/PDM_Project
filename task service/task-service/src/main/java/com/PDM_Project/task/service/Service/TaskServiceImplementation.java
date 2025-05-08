@@ -48,18 +48,8 @@ public class TaskServiceImplementation implements TaskService {
 
             List<Task> allTasks = dao.findAll();
 
-            // Lọc task: hoặc được tạo bởi người dùng hoặc người dùng được mời
             return allTasks.stream()
-                    .filter(task -> {
-                        boolean isCreator = task.getCreatedBy().equals(userId);
-                        boolean isInvited = false;
-                        try {
-                            isInvited = dao.isUserInvitedToTask(task.getId(), userId);
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                        return isCreator || isInvited;
-                    })
+                    .filter(task -> task.getCreatedBy().equals(userId))
                     .filter(task -> status == null || task.getStatus().name().equalsIgnoreCase(status.toString()))
                     .collect(Collectors.toList());
         } catch (SQLException e) {
@@ -110,9 +100,14 @@ public class TaskServiceImplementation implements TaskService {
         try (Connection conn = dataSource.getConnection()) {
             TaskDAO dao = new TaskDAO(conn);
             Task task = dao.findById(taskId).orElseThrow(() -> new Exception("Task not found with id: " + taskId));
+
             task.setAssignedUserId(userId);
             task.setStatus(TaskStatus.DONE);
-            return dao.save(task);
+            Task updatedTask = dao.save(task);
+
+            dao.saveTaskInvitation(taskId, userId);
+
+            return updatedTask;
         }
     }
 
@@ -136,6 +131,7 @@ public class TaskServiceImplementation implements TaskService {
             return dao.save(task);
         }
     }
+
     @Override
     public Task getTaskByID(Long id, Long requesterId) throws Exception {
         try (Connection conn = dataSource.getConnection()) {
@@ -143,28 +139,12 @@ public class TaskServiceImplementation implements TaskService {
             Task task = dao.findById(id).orElseThrow(() -> new Exception("Task not found with id: " + id));
 
             boolean isOwner = task.getCreatedBy().equals(requesterId);
-            boolean isInvited = dao.isUserInvitedToTask(id, requesterId);
-
-            if (!isOwner && !isInvited) {
+            if (!isOwner) {
                 throw new Exception("Access denied: You are not allowed to access this task.");
             }
 
             return task;
         }
     }
-    @Override
-    public void inviteUserToTask(Long taskId, Long invitedUserId, Long requesterId) throws Exception {
-        try (Connection conn = dataSource.getConnection()) {
-            TaskDAO dao = new TaskDAO(conn);
-            Task task = dao.findById(taskId).orElseThrow(() -> new Exception("Task not found with id: " + taskId));
-
-            if (!task.getCreatedBy().equals(requesterId)) {
-                throw new Exception("Access denied: only the creator can invite others.");
-            }
-
-            dao.inviteUserToTask(taskId, invitedUserId);
-        }
-    }
-
 
 }
