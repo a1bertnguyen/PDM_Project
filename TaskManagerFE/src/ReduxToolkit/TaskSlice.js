@@ -61,6 +61,23 @@ export const createNewTask = createAsyncThunk(
   }
 );
 
+// ✅ Complete task
+export const completeTask = createAsyncThunk(
+  "task/completeTask",
+  async (taskId) => {
+    setAuthHeader(localStorage.getItem("jwt"), api);
+    try {
+      console.log(`Calling API to complete task ${taskId}`);
+      const response = await api.put(`/api/tasks/${taskId}/complete`);
+      console.log(`API response for completing task:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error completing task ${taskId}:`, error);
+      throw Error(error?.response?.data?.error || "Complete task failed");
+    }
+  }
+);
+
 // ✏️ Update task
 export const updateTask = createAsyncThunk(
   "task/updateTask",
@@ -155,6 +172,33 @@ const taskSlice = createSlice({
         state.tasks = state.tasks.map(task =>
           task.id === updated.id ? { ...task, ...updated } : task
         );
+      })
+
+      .addCase(completeTask.pending, (state) => {
+        // Thêm trạng thái pending nếu cần
+        state.loading = true;
+      })
+
+      .addCase(completeTask.fulfilled, (state, action) => {
+        state.loading = false;
+        const updated = action.payload;
+
+        // Log để debug
+        console.log("Reducer: Completing task with data:", updated);
+
+        // Đảm bảo cập nhật task trong state
+        state.tasks = state.tasks.map(task =>
+          task.id === updated.id ? { ...task, ...updated, status: "DONE" } : task
+        );
+
+        // Log sau khi cập nhật state
+        console.log("Reducer: Updated tasks state");
+      })
+
+      .addCase(completeTask.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+        console.error("Reducer: Error completing task:", action.error);
       })
 
       .addCase(deleteTask.fulfilled, (state, action) => {

@@ -5,16 +5,34 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { useDispatch } from "react-redux";
 import { acceptDeclineSubmission } from '../../../ReduxToolkit/SubmissionSlice';
-
+import { completeTask, fetchTasks } from '../../../ReduxToolkit/TaskSlice'; // Thêm import này
 
 const SubmissionCard = ({ item }) => {
   const dispatch = useDispatch();
 
   const handleAcceptDecline = (status) => {
-    dispatch(acceptDeclineSubmission({ id: item.id, status }));
-    console.log("Submission status updated to:", status);
-  };
+    dispatch(acceptDeclineSubmission({ id: item.id, status }))
+      .unwrap()
+      .then(() => {
+        console.log("Submission status updated to:", status);
 
+        // Nếu status là ACCEPTED, cập nhật task sang DONE
+        if (status === "ACCEPTED") {
+          dispatch(completeTask(item.taskId))
+            .then(() => {
+              console.log("Task marked as DONE");
+              // Tải lại danh sách tasks để cập nhật UI
+              dispatch(fetchTasks({}));
+            })
+            .catch(error => {
+              console.error("Error completing task:", error);
+            });
+        }
+      })
+      .catch(error => {
+        console.error("Error updating submission:", error);
+      });
+  };
   return (
     <div className='rounded-md bg-black p-5 flex items-center justify-between'>
       <div className='space-y-2'>

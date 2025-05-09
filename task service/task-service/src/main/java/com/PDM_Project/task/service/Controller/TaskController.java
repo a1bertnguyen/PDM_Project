@@ -37,7 +37,7 @@ public class TaskController {
     public ResponseEntity<Task> getTaskById(@PathVariable long id,
                                             @RequestHeader("Authorization") String jwt) throws Exception {
         UserDto user = userService.getUserProfile(jwt);
-        Task task = taskService.getTaskByID(id, user.getId());
+        Task task = taskService.getTaskByID(id, user.getId()); // Đảm bảo gọi phương thức có kiểm tra quyền
         return new ResponseEntity<>(task, HttpStatus.OK);
     }
 
@@ -93,7 +93,7 @@ public class TaskController {
         Task task = taskService.completedTask(id);
         return new ResponseEntity<>(task, HttpStatus.OK);
     }
-    
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(

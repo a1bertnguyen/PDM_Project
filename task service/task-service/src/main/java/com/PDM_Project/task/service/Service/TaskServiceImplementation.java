@@ -101,7 +101,7 @@ public class TaskServiceImplementation implements TaskService {
             TaskDAO dao = new TaskDAO(conn);
             Task task = dao.findById(taskId).orElseThrow(() -> new Exception("Task not found with id: " + taskId));
             task.setAssignedUserId(userId);
-            task.setStatus(TaskStatus.DONE);
+            task.setStatus(TaskStatus.ASSIGNED);
             Task updatedTask = dao.save(task);
 
             dao.saveTaskInvitation(taskId, userId);
@@ -138,7 +138,10 @@ public class TaskServiceImplementation implements TaskService {
             Task task = dao.findById(id).orElseThrow(() -> new Exception("Task not found with id: " + id));
 
             boolean isOwner = task.getCreatedBy().equals(requesterId);
-            if (!isOwner) {
+            boolean isAssigned = task.getAssignedUserId() != null && task.getAssignedUserId().equals(requesterId);
+
+            // Cho phép truy cập nếu là người tạo HOẶC là người được gán task
+            if (!isOwner && !isAssigned) {
                 throw new Exception("Access denied: You are not allowed to access this task.");
             }
 
