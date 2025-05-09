@@ -1,158 +1,143 @@
-// src/Page/Task/TaskCard/TaskCard.jsx
 import React, { useState } from 'react';
 import { IconButton, Menu, MenuItem } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useDispatch, useSelector } from 'react-redux';
+import UserList from "../UserList";
+import SubmissionList from "./SubmissionList";
+import EditTaskForm from "./EditTaskForm";
+import SubmitFormModel from './SubmitFormModel';
+
 import { deleteTask } from '../../../ReduxToolkit/TaskSlice';
-import { fetchSubmissionsByTaskId } from '../../../ReduxToolkit/SubmissionSlice';
-import UserList from '../UserList';
-import SubmissionList from './SubmissionList';
-import EditTaskForm from './EditTaskForm';
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
 
-const TaskCard = ({ task }) => {
-    const dispatch = useDispatch();
-    const { auth } = useSelector(store => store);
-    const role = auth.user?.role || '';
+const TaskCard = ({ item }) => {
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { auth } = useSelector(store => store);
 
-    const [anchorEl, setAnchorEl] = useState(null);
-    const openMenu = Boolean(anchorEl);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const openMenu = Boolean(anchorEl);
 
-    const [openUserList, setOpenUserList] = useState(false);
-    const [openSubmissionList, setOpenSubmissionList] = useState(false);
-    const [openUpdateTaskForm, setOpenUpdateTaskForm] = useState(false);
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
 
-    // Menu handlers
-    const handleMenuClick = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
-    const handleMenuClose = () => {
-        setAnchorEl(null);
-    };
+  const [OpenUserList, setOpenUserList] = useState(false);
+  const handleCloseUserList = () => setOpenUserList(false);
+  const handleOpenUserList = () => {
+    const updatedParams = new URLSearchParams(location.search);
+    updatedParams.set("taskId", item.id);
+    navigate(`${location.pathname}?${updatedParams.toString()}`);
+    setOpenUserList(true);
+    handleMenuClose();
+  };
 
-    // User list modal handlers
-    const handleCloseUserList = () => {
-        setOpenUserList(false);
-    };
+  const [OpenSubmitFormModel, setOpenSubmitFormModel] = useState(false);
+  const handleCloseSubmitFormModel = () => setOpenSubmitFormModel(false);
+  const handleOpenSubmitFormModel = () => {
+    const updatedParams = new URLSearchParams(location.search);
+    updatedParams.set("taskId", item.id);
+    navigate(`${location.pathname}?${updatedParams.toString()}`);
+    setOpenSubmitFormModel(true);
+    handleMenuClose();
+  };
 
-    const handleOpenUserList = () => {
-        setOpenUserList(true);
-        handleMenuClose();
-    };
+  const [OpenSubmissionList, setOpenSubmissionList] = useState(false);
+  const handleCloseSubmissionList = () => setOpenSubmissionList(false);
+  const handleOpenSubmissionList = () => {
+    const updatedParams = new URLSearchParams(location.search);
+    updatedParams.set("taskId", item.id);
+    navigate(`${location.pathname}?${updatedParams.toString()}`);
 
-    // Submission list modal handlers
-    const handleCloseSubmissionList = () => {
-        setOpenSubmissionList(false);
-    };
+    setOpenSubmissionList(true);
+    handleMenuClose();
+  };
 
-    const handleOpenSubmissionList = () => {
-        setOpenSubmissionList(true);
-        dispatch(fetchSubmissionsByTaskId({ taskId: task.id }));
-        handleMenuClose();
-    };
+  const [OpenUpdateTaskForm, setOpenUpdateTaskForm] = useState(false);
+  const handleCloseUpdateTaskForm = () => setOpenUpdateTaskForm(false);
+  const handleOpenUpdateTaskModel = () => {
+    const updatedParams = new URLSearchParams(location.search);
+    updatedParams.set("taskId", item.id);
+    navigate(`${location.pathname}?${updatedParams.toString()}`);
 
-    // Edit task modal handlers
-    const handleCloseUpdateTaskForm = () => {
-        setOpenUpdateTaskForm(false);
-    };
+    setOpenUpdateTaskForm(true);
+    handleMenuClose();
+  };
 
-    const handleOpenUpdateTaskModel = () => {
-        setOpenUpdateTaskForm(true);
-        handleMenuClose();
-    };
 
-    // Delete task handler
-    const handleDeleteTask = () => {
-        dispatch(deleteTask(task.id));
-        handleMenuClose();
-    };
+  const handleDeleteTask = () => {
+    dispatch(deleteTask(item.id));
+    handleMenuClose();
+  };
 
-    return (
-        <div>
-            <div className='card lg:flex justify-between'>
-                <div className='lg:flex gap-5 items-center space-y-2 w-[90%] lg:w-[70%]'>
-                    {/* Task Image */}
-                    <div className='lg:w-[7rem] lg:h-[7rem] overflow-hidden'>
-                        <img
-                            src={task.image || "https://via.placeholder.com/150"}
-                            alt={task.title}
-                            className="w-full h-full object-cover"
-                        />
-                    </div>
 
-                    {/* Task Details */}
-                    <div className='space-y-5'>
-                        <div className='space-y-2'>
-                            <h1 className='font-bold text-lg'>{task.title}</h1>
-                            <p className='text-gray-500 text-sm'>{task.description}</p>
-                        </div>
+  return (
+    <div>
+      <div className='card lg:flex justify-between'>
+        <div className='lg:flex gap-5 items-center space-y-2 w-[90%] lg:w-[70%]'>
+          <div className='lg:w-[7rem] lg:h-[7rem] object-cover'>
+            <img src={item.image} alt="" />
 
-                        {/* Task Tags */}
-                        <div className='flex flex-wrap gap-2 items-center'>
-                            {task.tags && task.tags.map((tag, index) => (
-                                <span key={index} className='py-1 px-5 rounded-full techStack'>
-                                    {tag}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Action Menu */}
-                <div>
-                    <IconButton
-                        id="basic-button"
-                        aria-controls={openMenu ? 'basic-menu' : undefined}
-                        aria-haspopup="true"
-                        aria-expanded={openMenu ? 'true' : undefined}
-                        onClick={handleMenuClick}
-                    >
-                        <MoreVertIcon />
-                    </IconButton>
-
-                    <Menu
-                        id="basic-menu"
-                        anchorEl={anchorEl}
-                        open={openMenu}
-                        onClose={handleMenuClose}
-                        MenuListProps={{
-                            'aria-labelledby': 'basic-button',
-                        }}
-                    >
-                        {role === "ROLE_ADMIN" ? (
-                            <>
-                                <MenuItem onClick={handleOpenUserList}>Assign User</MenuItem>
-                                <MenuItem onClick={handleOpenSubmissionList}>See Submissions</MenuItem>
-                                <MenuItem onClick={handleOpenUpdateTaskModel}>Edit</MenuItem>
-                                <MenuItem onClick={handleDeleteTask}>Delete</MenuItem>
-                            </>
-                        ) : (
-                            <MenuItem onClick={handleOpenSubmissionList}>Submit Task</MenuItem>
-                        )}
-                    </Menu>
-                </div>
+          </div>
+          <div className='space-y-5'>
+            <div className='space-y-2'>
+              <h1 className='font-bold text-lg'>{item.title}</h1>
+              <p className='text-gray-500 text-sm'>{item.description}</p>
             </div>
-
-            {/* Modals */}
-            <UserList
-                open={openUserList}
-                handleClose={handleCloseUserList}
-                taskId={task.id}
-            />
-
-            <SubmissionList
-                open={openSubmissionList}
-                handleClose={handleCloseSubmissionList}
-                taskId={task.id}
-            />
-
-            <EditTaskForm
-                open={openUpdateTaskForm}
-                handleClose={handleCloseUpdateTaskForm}
-                task={task}
-            />
+            <div className='flex flex-wrap gap-2 items-center'>
+              {item.tags.map((tag, i) => (
+                <span key={i} className='py-1 px-5 rounded-full techStack'>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
-    );
+
+        <div>
+          <IconButton
+            id="basic-button"
+            aria-controls={openMenu ? 'basic-menu' : undefined}
+            aria-haspopup="true"
+            aria-expanded={openMenu ? 'true' : undefined}
+            onClick={handleMenuClick}
+          >
+            <MoreVertIcon />
+          </IconButton>
+
+          <Menu
+            id="basic-menu"
+            anchorEl={anchorEl}
+            open={openMenu}
+            onClose={handleMenuClose}
+            MenuListProps={{ 'aria-labelledby': 'basic-button' }}
+          >
+            {auth.user?.role === "ROLE_ADMIN" ? (
+              <>
+                <MenuItem onClick={handleOpenUserList}>Assigned User</MenuItem>
+                <MenuItem onClick={handleOpenSubmissionList}>See Submissions</MenuItem>
+                <MenuItem onClick={handleOpenUpdateTaskModel}>Edit</MenuItem>
+                <MenuItem onClick={handleDeleteTask}>Delete</MenuItem>
+              </>
+            ) : (
+              <MenuItem onClick={handleOpenSubmitFormModel}>Submit</MenuItem>
+            )}
+          </Menu>
+        </div>
+      </div>
+
+      <UserList open={OpenUserList} handleClose={handleCloseUserList} />
+      <SubmissionList open={OpenSubmissionList} handleClose={handleCloseSubmissionList} />
+      <EditTaskForm item={item} open={OpenUpdateTaskForm} handleClose={handleCloseUpdateTaskForm} />
+      <SubmitFormModel open={OpenSubmitFormModel} handleClose={handleCloseSubmitFormModel} />
+
+    </div>
+  );
 };
 
 export default TaskCard;

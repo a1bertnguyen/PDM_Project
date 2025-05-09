@@ -1,21 +1,19 @@
-// src/Page/Auth/Signup/SignupForm.jsx
 import React, { useState } from "react";
-import { TextField, Button, Select, MenuItem, FormControl, InputLabel, CircularProgress, Alert } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
+import { TextField, Button, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { useDispatch } from "react-redux";
 import { register } from "../../../ReduxToolkit/AuthSlice";
 
 const SignupForm = ({ togglePanel }) => {
   const dispatch = useDispatch();
-  const { loading, error } = useSelector(state => state.auth);
 
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     password: "",
-    role: "ROLE_CUSTOMER",
+    role: "",
   });
 
-  const [formErrors, setFormErrors] = useState({
+  const [errors, setErrors] = useState({
     fullName: "",
     email: "",
     password: "",
@@ -26,7 +24,9 @@ const SignupForm = ({ togglePanel }) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // Validation
+    // You can add custom validation here
+    // For example, checking if the fields are empty or have specific patterns
+    // Update the errors state accordingly
     let errorText = "";
     if (name === "fullName") {
       errorText = value === "" ? "Full Name is required" : "";
@@ -35,42 +35,31 @@ const SignupForm = ({ togglePanel }) => {
         value === ""
           ? "Email is required"
           : !/\S+@\S+\.\S+/.test(value)
-            ? "Please enter a valid email address"
-            : "";
+          ? "Please enter a valid email address"
+          : "";
     } else if (name === "password") {
       errorText =
         value === ""
           ? "Password is required"
           : value.length < 6
-            ? "Password must be at least 6 characters"
-            : "";
+          ? "Password must be at least 6 characters"
+          : "";
     }
 
-    setFormErrors({ ...formErrors, [name]: errorText });
+    setErrors({ ...errors, [name]: errorText });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Check if form has errors
-    if (formErrors.fullName || formErrors.email || formErrors.password) {
-      return;
-    }
-
-    // Dispatch register action
+    // Handle form submission here
+    // You can use the formData state to send data to your backend or perform other actions
     dispatch(register(formData));
+    console.log("Form Submitted", formData);
   };
 
   return (
     <div className="">
       <h1 className="text-lg font-bold text-center pb-8 textStyle">Signup</h1>
-
-      {error && (
-        <Alert severity="error" className="mb-4">
-          {error}
-        </Alert>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-3">
         <TextField
           fullWidth
@@ -78,10 +67,9 @@ const SignupForm = ({ togglePanel }) => {
           name="fullName"
           value={formData.fullName}
           onChange={handleChange}
-          error={!!formErrors.fullName}
-          helperText={formErrors.fullName}
+          error={!!errors.fullName}
+          helperText={errors.fullName}
           placeholder="Enter your full name"
-          disabled={loading}
         />
 
         <TextField
@@ -91,30 +79,27 @@ const SignupForm = ({ togglePanel }) => {
           type="email"
           value={formData.email}
           onChange={handleChange}
-          error={!!formErrors.email}
-          helperText={formErrors.email}
+          error={!!errors.email}
+          helperText={errors.email}
           placeholder="Enter your email"
-          disabled={loading}
         />
-
         <FormControl fullWidth>
-          <InputLabel id="role-label">Role</InputLabel>
-          <Select
-            labelId="role-label"
-            label="Role"
-            name="role"
-            id="role"
-            value={formData.role}
-            onChange={handleChange}
-            error={!!formErrors.role}
-            disabled={loading}
-          >
-            <MenuItem value="ROLE_CUSTOMER">USER</MenuItem>
-            <MenuItem value="ROLE_ADMIN">ADMIN</MenuItem>
-          </Select>
-          {formErrors.role && <div style={{ color: 'red' }}>{formErrors.role}</div>}
-        </FormControl>
-
+  <InputLabel htmlFor="role">Role</InputLabel>
+  <Select
+    label="Role"
+    name="role"
+    id="role"
+    value={formData.role}
+    onChange={handleChange}
+    error={!!errors.role}
+  >
+   
+    <MenuItem value="ROLE_CUSTOMER">USER</MenuItem>
+    <MenuItem value="ROLE_ADMIN">ADMIN</MenuItem>
+    {/* Add more MenuItem components for other roles */}
+  </Select>
+  {errors.role && <div style={{ color: 'red' }}>{errors.role}</div>}
+</FormControl>
         <TextField
           fullWidth
           label="Password"
@@ -122,38 +107,33 @@ const SignupForm = ({ togglePanel }) => {
           type="password"
           value={formData.password}
           onChange={handleChange}
-          error={!!formErrors.password}
-          helperText={formErrors.password}
+          error={!!errors.password}
+          helperText={errors.password}
           placeholder="Enter your password"
-          disabled={loading}
         />
 
         <div>
           <Button
             sx={{ padding: ".7rem 0rem" }}
-            className="customeButton"
+            className="customButton"
             variant="contained"
             color="primary"
             type="submit"
             fullWidth
-            disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : "Register"}
+            Register
           </Button>
         </div>
       </form>
 
       <div className="textStyle flex items-center gap-2 mt-9 justify-center">
         <span>Already have an account?</span>
-        <Button
-          className="btn"
-          onClick={togglePanel}
-          color="primary"
-          disabled={loading}
-        >
-          Sign in
+        <Button className="btn" onClick={togglePanel} color="primary">
+          signin
         </Button>
       </div>
     </div>
   );
 };
+
+export default SignupForm;

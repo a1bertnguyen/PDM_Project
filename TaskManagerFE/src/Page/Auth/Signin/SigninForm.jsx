@@ -1,19 +1,16 @@
-// src/Page/Auth/Signin/SigninForm.jsx
-import React, { useState, useEffect } from "react";
-import { TextField, Button, CircularProgress, Alert } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import { TextField, Button } from "@mui/material";
+import { useDispatch } from "react-redux";
 import { login } from "../../../ReduxToolkit/AuthSlice";
 
-const SigninForm = ({ togglePanel }) => {
+const LoginForm = ({ togglePanel }) => {
   const dispatch = useDispatch();
-  const { loading, error } = useSelector(state => state.auth);
-
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  const [formErrors, setFormErrors] = useState({
+  const [errors, setErrors] = useState({
     email: "",
     password: "",
   });
@@ -22,44 +19,30 @@ const SigninForm = ({ togglePanel }) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // Validation
     let errorText = "";
     if (name === "email") {
       errorText =
         value === ""
           ? "Email is required"
           : !/\S+@\S+\.\S+/.test(value)
-            ? "Please enter a valid email address"
-            : "";
+          ? "Please enter a valid email address"
+          : "";
     } else if (name === "password") {
       errorText = value === "" ? "Password is required" : "";
     }
 
-    setFormErrors({ ...formErrors, [name]: errorText });
+    setErrors({ ...errors, [name]: errorText });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Check if form has errors
-    if (formErrors.email || formErrors.password) {
-      return;
-    }
-
-    // Dispatch login action
-    dispatch(login(formData));
+    dispatch(login(formData))
+    console.log("Login Form Submitted ", formData);
   };
 
   return (
     <div className="">
       <h1 className="text-lg font-bold text-center pb-8 textStyle">Login</h1>
-
-      {error && (
-        <Alert severity="error" className="mb-4">
-          {error}
-        </Alert>
-      )}
-
       <form className="space-y-3" onSubmit={handleSubmit}>
         <TextField
           fullWidth
@@ -68,10 +51,9 @@ const SigninForm = ({ togglePanel }) => {
           type="email"
           value={formData.email}
           onChange={handleChange}
-          error={!!formErrors.email}
-          helperText={formErrors.email}
+          error={!!errors.email}
+          helperText={errors.email}
           placeholder="Enter your email"
-          disabled={loading}
         />
 
         <TextField
@@ -81,10 +63,9 @@ const SigninForm = ({ togglePanel }) => {
           type="password"
           value={formData.password}
           onChange={handleChange}
-          error={!!formErrors.password}
-          helperText={formErrors.password}
+          error={!!errors.password}
+          helperText={errors.password}
           placeholder="Enter your password"
-          disabled={loading}
         />
 
         <div>
@@ -95,21 +76,15 @@ const SigninForm = ({ togglePanel }) => {
             color="primary"
             type="submit"
             fullWidth
-            disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : "Login"}
+            Login
           </Button>
         </div>
       </form>
 
       <div className="textStyle mt-5 flex items-center gap-2 py-5 justify-center">
         <span>Don't have an account?</span>
-        <Button
-          className=""
-          onClick={togglePanel}
-          color="primary"
-          disabled={loading}
-        >
+        <Button type="button" className="" onClick={togglePanel} color="primary">
           Sign up
         </Button>
       </div>
@@ -117,4 +92,4 @@ const SigninForm = ({ togglePanel }) => {
   );
 };
 
-export default SigninForm;
+export default LoginForm;

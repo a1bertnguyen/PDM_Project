@@ -1,5 +1,4 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
-
 * {
   margin: 0;
   padding: 0;
@@ -18,7 +17,6 @@
 
   /* background-color: #1b013b !important; */
 }
-
 .box .cover {
   position: absolute;
   top: 0;
@@ -61,13 +59,11 @@
   opacity: 0.4;
   z-index: 12;
 }
-
 .box .cover::after {
   opacity: 0.3;
   transform: rotateY(180deg);
   backface-visibility: hidden;
 }
-
 .box .cover img {
   position: absolute;
   height: 100%;
@@ -75,7 +71,6 @@
   object-fit: cover;
   z-index: 10;
 }
-
 .box .cover .text {
   position: absolute;
   z-index: 130;
@@ -86,7 +81,6 @@
   align-items: center;
   justify-content: center;
 }
-
 .cover .text .text-1,
 .cover .text .text-2 {
   font-size: 26px;

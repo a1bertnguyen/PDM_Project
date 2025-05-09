@@ -1,48 +1,82 @@
-// src/ReduxToolkit/AuthSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import * as api from '../api/api';
+import axios from 'axios';
+import { BASE_URL, api, setAuthHeader } from '../api/api';
 
+// 🔐 LOGIN
+// Trong LoginSlice.js
 export const login = createAsyncThunk('auth/login', async (userData, { rejectWithValue }) => {
   try {
-    const response = await api.login(userData);
-    return response;
+    console.log("Sending login request:", userData);
+
+    const response = await axios.post(`${BASE_URL}/auth/signin`, {
+      email: userData.email,
+      password: userData.password
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log("Login response:", response.data);
+    localStorage.setItem("jwt", response.data.jwt);
+    return response.data;
   } catch (error) {
-    return rejectWithValue(error.message || 'Login failed');
-  }
-});
-
-export const register = createAsyncThunk('auth/register', async (userData, { rejectWithValue }) => {
-  try {
-    const response = await api.register(userData);
-    return response;
-  } catch (error) {
-    return rejectWithValue(error.message || 'Registration failed');
-  }
-});
-
-export const logout = createAsyncThunk('auth/logout', async () => {
-  localStorage.removeItem("jwt");
-});
-
-export const getUserProfile = createAsyncThunk('auth/getUserProfile', async (_, { rejectWithValue }) => {
-  try {
-    const token = localStorage.getItem("jwt");
-    if (!token) {
-      return rejectWithValue('No token found');
+    console.log("Login error full:", error);
+    if (error.response) {
+      console.log("Error response data:", error.response.data);
+      console.log("Error response status:", error.response.status);
+      return rejectWithValue(error.response.data.message || "Login failed");
     }
-    const response = await api.getUserProfile();
-    return response;
-  } catch (error) {
-    return rejectWithValue(error.message || 'Failed to fetch user profile');
+    return rejectWithValue("Network error");
   }
 });
 
-export const getUserList = createAsyncThunk('auth/getUserList', async (_, { rejectWithValue }) => {
+// 📝 REGISTER
+export const register = createAsyncThunk('auth/register', async (userData) => {
   try {
-    const response = await api.getAllUsers();
-    return response;
+    const response = await api.post(`${BASE_URL}/auth/signup`, userData);
+    localStorage.setItem("jwt", response.data.jwt);
+    console.log("✅ register success", response.data);
+    return response.data;
   } catch (error) {
-    return rejectWithValue(error.message || 'Failed to fetch users');
+    console.log("❌ register error", error);
+    throw Error(error.response?.data?.error || "Registration failed");
+  }
+});
+
+// 🚪 LOGOUT
+export const logout = createAsyncThunk('auth/logout', async () => {
+  try {
+    localStorage.clear();
+  } catch (error) {
+    throw Error("Logout failed");
+  }
+});
+
+// 👤 GET PROFILE (Fix transformResponse issue with MSW)
+// Thay đổi hàm getUserProfile
+export const getUserProfile = createAsyncThunk('auth/getUserProfile', async (jwt) => {
+  setAuthHeader(jwt, api);
+  try {
+    const response = await api.get('/api/users/profile');
+    console.log("✅ get profile", response.data);
+    return response.data; // Chỉ trả về data, không trả về toàn bộ response
+  } catch (error) {
+    console.log("❌ get profile error", error);
+    throw Error(error?.response?.data?.error || "Get profile failed");
+  }
+});
+
+// 📋 GET USER LIST
+export const getUserList = createAsyncThunk('auth/getUserList', async (jwt) => {
+  setAuthHeader(jwt, api);
+  try {
+    const response = await api.get('/api/users');
+    console.log("✅ user list", response.data);
+    return response.data;
+  } catch (error) {
+    console.log("❌ get users error", error);
+    throw Error("Get users failed");
   }
 });
 
@@ -53,7 +87,7 @@ const authSlice = createSlice({
     loggedIn: false,
     loading: false,
     error: null,
-    jwt: localStorage.getItem("jwt") || null,
+    jwt: null,
     users: []
   },
   reducers: {},
@@ -66,12 +100,29 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.jwt = action.payload.jwt;
+        state.user = action.payload;
         state.loggedIn = true;
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.error.message;
       })
+
+      .addCase(register.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(register.fulfilled, (state, action) => {
+        state.loading = false;
+        state.jwt = action.payload.jwt;
+        state.user = action.payload;
+        state.loggedIn = true;
+      })
+      .addCase(register.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
       .addCase(getUserProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -81,27 +132,11 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.loggedIn = true;
       })
-      .addCase(getUserList.fulfilled, (state, action) => {
-        state.loading = false;
-        state.users = action.payload;
-      })
       .addCase(getUserProfile.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.error.message;
       })
-      .addCase(register.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(register.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload;
-        state.loggedIn = true;
-      })
-      .addCase(register.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+
       .addCase(logout.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -109,12 +144,17 @@ const authSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.loading = false;
         state.user = null;
-        state.loggedIn = false;
         state.jwt = null;
+        state.loggedIn = false;
       })
       .addCase(logout.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.error.message;
+      })
+
+      .addCase(getUserList.fulfilled, (state, action) => {
+        state.loading = false;
+        state.users = action.payload;
       });
   },
 });

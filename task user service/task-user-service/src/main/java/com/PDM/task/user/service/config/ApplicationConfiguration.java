@@ -22,14 +22,10 @@ public class ApplicationConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .sessionManagement(management ->
-                        management.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authorizeRequests(authorize ->
-                        authorize
-                                .requestMatchers("/api/**").authenticated()
-                                .anyRequest().permitAll()
-                )
+                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeRequests(authorize -> authorize
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().permitAll())
                 .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsCorsConfigurationSource()))
@@ -46,7 +42,7 @@ public class ApplicationConfiguration {
                 CorsConfiguration cfg = new CorsConfiguration();
                 cfg.setAllowedOrigins(Collections.singletonList("*"));
                 cfg.setAllowedMethods(Collections.singletonList("*"));
-                cfg.setAllowCredentials(true);
+                cfg.setAllowCredentials(false);
                 cfg.setAllowedHeaders(Collections.singletonList("*"));
                 cfg.setExposedHeaders(Arrays.asList("Authorization"));
                 cfg.setMaxAge(3600L);

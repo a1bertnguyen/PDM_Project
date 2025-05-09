@@ -8,7 +8,7 @@ import { thunk } from 'redux-thunk';
 const rootReducer = combineReducers({
   task: taskReducer,
   auth: authReducer,
-  submission: submissionReducer
+  submission:submissionReducer
   // Add other reducers here if needed
 });
 

@@ -1,34 +1,20 @@
-// src/Page/Home/Home.jsx
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { getUserProfile } from "../../ReduxToolkit/AuthSlice";
-import SideBar from "./SideBar";
-import TaskList from "../TaskList/TaskList";
+import React from 'react'
+import TaskList from '../TaskList/TaskList'
+import SideBar from './SideBar'
 
 const Home = () => {
-  const dispatch = useDispatch();
-  const { user, jwt } = useSelector(state => state.auth);
-
-  // Load user profile on component mount if JWT exists but user is null
-  useEffect(() => {
-    if (jwt && !user) {
-      dispatch(getUserProfile());
-    }
-  }, [jwt, user, dispatch]);
-
   return (
-    <div className="flex">
-      {/* Left Sidebar */}
-      <div className="w-1/5">
-        <SideBar />
-      </div>
+    <div className='lg:flex px-5 lg:px-20 pt-[2.9vh]'>
+        <div className='hidden lg:block w-[25vw]  relative'>
+             <SideBar/> 
+        </div>
 
-      {/* Main Content */}
-      <div className="w-4/5 p-4 ml-[20vw]">
-        <TaskList />
-      </div>
+        <div className='w-full flex justify-center mb-10'>
+            <TaskList/>
+        </div>
+        
     </div>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home

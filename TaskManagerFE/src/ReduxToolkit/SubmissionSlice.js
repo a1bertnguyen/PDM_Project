@@ -1,51 +1,54 @@
-// src/ReduxToolkit/SubmissionSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import * as api from '../api/api';
+import { api, setAuthHeader } from '../api/api';
 
 export const submitTask = createAsyncThunk(
   'submissions/submitTask',
-  async ({ taskId, githubLink }, { rejectWithValue }) => {
+  async ({ taskId, githubLink }) => {
+    setAuthHeader(localStorage.getItem("jwt"), api);
     try {
-      const response = await api.submitTask(taskId, githubLink);
-      return response;
+      const response = await api.post(`/api/submissions?task_id=${taskId}&github_link=${githubLink}`, {});
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to submit task");
+      throw Error(error?.response?.data?.error || "Submit failed");
     }
   }
 );
 
 export const fetchAllSubmissions = createAsyncThunk(
   'submissions/fetchAllSubmissions',
-  async (_, { rejectWithValue }) => {
+  async () => {
+    setAuthHeader(localStorage.getItem("jwt"), api);
     try {
-      const response = await api.getSubmissions();
-      return response;
+      const response = await api.get("/api/submissions");
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to fetch submissions");
+      throw Error(error?.response?.data?.error || "Fetch all submissions failed");
     }
   }
 );
 
 export const fetchSubmissionsByTaskId = createAsyncThunk(
   'submissions/fetchSubmissionsByTaskId',
-  async ({ taskId }, { rejectWithValue }) => {
+  async ({ taskId }) => {
+    setAuthHeader(localStorage.getItem("jwt"), api);
     try {
-      const response = await api.getSubmissionsByTaskId(taskId);
-      return response;
+      const response = await api.get(`/api/submissions/task/${taskId}`);
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to fetch task submissions");
+      throw Error(error?.response?.data?.error || "Fetch by task ID failed");
     }
   }
 );
 
 export const acceptDeclineSubmission = createAsyncThunk(
   'submissions/acceptDeclineSubmission',
-  async ({ id, status }, { rejectWithValue }) => {
+  async ({ id, status }) => {
+    setAuthHeader(localStorage.getItem("jwt"), api);
     try {
-      const response = await api.acceptDeclineSubmission(id, status);
-      return response;
+      const response = await api.put(`/api/submissions/${id}?status=${status}`);
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to update submission status");
+      throw Error(error?.response?.data?.error || "Update submission status failed");
     }
   }
 );
@@ -69,26 +72,29 @@ const submissionSlice = createSlice({
       })
       .addCase(submitTask.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload;
+        state.error = action.error.message;
       })
+
       .addCase(fetchAllSubmissions.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.submissions = action.payload;
       })
       .addCase(fetchAllSubmissions.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload;
+        state.error = action.error.message;
       })
+
       .addCase(fetchSubmissionsByTaskId.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.submissions = action.payload;
       })
+
       .addCase(acceptDeclineSubmission.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.submissions = state.submissions.map((item) =>
           item.id !== action.payload.id ? item : action.payload
         );
-      })
+      });
   },
 });
 

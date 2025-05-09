@@ -9,7 +9,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #1a0b19, #150d2d, #162134) !important;
+  background: linear-gradient(135deg,#1a0b19,#150d2d,#162134) !important;
   color: white;
   overflow-x: hidden !important;
   width: 100vw !important;
@@ -19,15 +19,14 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
-
-.techStack {
-  color: #c24dd0;
+.techStack{
+  color:#c24dd0;
   border: 2px solid #c24dd0;
   padding: 0.5rem 2rem;
   /*background-image: linear-gradient(150deg, #c24dd0, #7a72fa);*/
 }
 
-.customeButton {
+.customeButton{
   background-image: linear-gradient(150deg, #c24dd0, #7a72fa);
   color: white !important;
 

@@ -13,31 +13,33 @@ import { fetchTasks, fetchUsersTasks } from "./ReduxToolkit/TaskSlice";
 
 
 function App() {
-  const dispatch = useDispatch()
-  const { auth } = useSelector(store => store)
-
-  useEffect(() => {
+  const dispatch=useDispatch()
+  const {task,auth}=useSelector(store=>store)
+  
+  useEffect(()=>{
     dispatch(getUserProfile(localStorage.getItem("jwt")))
+    
+  },[auth.jwt])
 
-  }, [auth.jwt])
-
-  useEffect(() => {
-    if (auth.user?.role === "ROLE_ADMIN") {
-      dispatch(fetchTasks())
+  useEffect(()=>{
+    if(auth.user?.role==="ROLE_ADMIN"){
+      dispatch(fetchTasks({})) // truyền object rỗng nếu không lọc
     }
-    else {
-      dispatch(fetchUsersTasks())
+    else{
+      dispatch(fetchUsersTasks({}))
     }
-  }, [auth.user])
+  },[auth.user])
+  
   return (
     <ThemeProvider theme={darkTheme}>
-
-      {auth.user ? <div>
-        <Navbar />
-        <Home />
-      </div> : <Auth />}
-
-
+      
+      {auth.user?<div>
+      <Navbar/>
+      <Home />
+      </div>:<Auth/> }
+ {/*      <Navbar/>
+      <Home /> */}
+      
     </ThemeProvider>
   );
 }

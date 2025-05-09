@@ -1,93 +1,109 @@
-// src/ReduxToolkit/TaskSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import * as api from '../api/api';
+import { api, setAuthHeader } from "../api/api";
 
+// 📥 Admin fetch all tasks
 export const fetchTasks = createAsyncThunk(
   "task/fetchTasks",
-  async ({ status, sortByCreatedAt, sortByDeadline }, { rejectWithValue }) => {
+  async ({ status, sortByCreatedAt, sortByDeadline }) => {
+    setAuthHeader(localStorage.getItem("jwt"), api);
     try {
-      const filter = status ? status : null;
-      const response = await api.getAllTasks(filter);
-      return response;
+      const response = await api.get("/api/tasks", {
+        params: { status, sortByDeadline, sortByCreatedAt },
+      });
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to fetch tasks");
+      throw Error(error?.response?.data?.error || "Fetch tasks failed");
     }
   }
 );
 
+// 📥 User fetch assigned tasks
 export const fetchUsersTasks = createAsyncThunk(
   "task/fetchUsersTasks",
-  async ({ status, sortByCreatedAt, sortByDeadline }, { rejectWithValue }) => {
+  async ({ status, sortByCreatedAt, sortByDeadline }) => {
+    setAuthHeader(localStorage.getItem("jwt"), api);
     try {
-      const filter = status ? status : null;
-      const response = await api.getUserTasks(filter);
-      return response;
+      const response = await api.get("/api/tasks/user", {
+        params: { status, sortByDeadline, sortByCreatedAt },
+      });
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to fetch user tasks");
+      throw Error(error?.response?.data?.error || "Fetch user's tasks failed");
     }
   }
 );
 
+// 📄 Get task by ID
 export const fetchTaskById = createAsyncThunk(
   "task/fetchTaskById",
-  async (taskId, { rejectWithValue }) => {
+  async (taskId) => {
+    setAuthHeader(localStorage.getItem("jwt"), api);
     try {
-      const response = await api.getTaskById(taskId);
-      return response;
+      const response = await api.get(`/api/tasks/${taskId}`);
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to fetch task");
+      throw Error(error?.response?.data?.error || "Fetch task by ID failed");
     }
   }
 );
 
+// ➕ Create task
 export const createNewTask = createAsyncThunk(
   "task/createNewTask",
-  async (taskData, { rejectWithValue }) => {
+  async (taskData) => {
+    setAuthHeader(localStorage.getItem("jwt"), api);
     try {
-      const response = await api.createTask(taskData);
-      return response;
+      const response = await api.post("/api/tasks", taskData);
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to create task");
+      throw Error(error?.response?.data?.error || "Create task failed");
     }
   }
 );
 
+// ✏️ Update task
 export const updateTask = createAsyncThunk(
   "task/updateTask",
-  async ({ id, updatedTaskData }, { rejectWithValue }) => {
+  async ({ id, updatedTaskData }) => {
+    setAuthHeader(localStorage.getItem("jwt"), api);
     try {
-      const response = await api.updateTask(id, updatedTaskData);
-      return response;
+      const response = await api.put(`/api/tasks/${id}`, updatedTaskData);
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to update task");
+      throw Error(error?.response?.data?.error || "Update task failed");
     }
   }
 );
 
+// 👤 Assign task
 export const assignedTaskToUser = createAsyncThunk(
   "task/assignedTaskToUser",
-  async ({ userId, taskId }, { rejectWithValue }) => {
+  async ({ userId, taskId }) => {
+    setAuthHeader(localStorage.getItem("jwt"), api);
     try {
-      const response = await api.assignTaskToUser(taskId, userId);
-      return response;
+      const response = await api.put(`/api/tasks/${taskId}/user/${userId}/assigned`);
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to assign task");
+      throw Error(error?.response?.data?.error || "Assign task failed");
     }
   }
 );
 
+// ❌ Delete task
 export const deleteTask = createAsyncThunk(
   "task/deleteTask",
-  async (id, { rejectWithValue }) => {
+  async (id) => {
+    setAuthHeader(localStorage.getItem("jwt"), api);
     try {
-      await api.deleteTask(id);
+      await api.delete(`/api/tasks/${id}`);
       return id;
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to delete task");
+      throw Error(error?.response?.data?.error || "Delete task failed");
     }
   }
 );
 
+// 🧠 Slice config
 const taskSlice = createSlice({
   name: "task",
   initialState: {
@@ -110,33 +126,39 @@ const taskSlice = createSlice({
       })
       .addCase(fetchTasks.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.error.message;
       })
+
       .addCase(fetchUsersTasks.fulfilled, (state, action) => {
         state.loading = false;
         state.tasks = action.payload;
       })
+
       .addCase(fetchTaskById.fulfilled, (state, action) => {
         state.loading = false;
         state.taskDetails = action.payload;
       })
+
       .addCase(createNewTask.fulfilled, (state, action) => {
         state.tasks.push(action.payload);
       })
+
       .addCase(updateTask.fulfilled, (state, action) => {
-        const updatedTask = action.payload;
-        state.tasks = state.tasks.map((task) =>
-          task.id === updatedTask.id ? { ...task, ...updatedTask } : task
+        const updated = action.payload;
+        state.tasks = state.tasks.map(task =>
+          task.id === updated.id ? { ...task, ...updated } : task
         );
       })
+
       .addCase(assignedTaskToUser.fulfilled, (state, action) => {
-        const updatedTask = action.payload;
-        state.tasks = state.tasks.map((task) =>
-          task.id === updatedTask.id ? { ...task, ...updatedTask } : task
+        const updated = action.payload;
+        state.tasks = state.tasks.map(task =>
+          task.id === updated.id ? { ...task, ...updated } : task
         );
       })
+
       .addCase(deleteTask.fulfilled, (state, action) => {
-        state.tasks = state.tasks.filter((task) => task.id !== action.payload);
+        state.tasks = state.tasks.filter(task => task.id !== action.payload);
       });
   },
 });
