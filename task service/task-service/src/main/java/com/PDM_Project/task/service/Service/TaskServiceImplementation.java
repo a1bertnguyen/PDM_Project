@@ -100,7 +100,6 @@ public class TaskServiceImplementation implements TaskService {
         try (Connection conn = dataSource.getConnection()) {
             TaskDAO dao = new TaskDAO(conn);
             Task task = dao.findById(taskId).orElseThrow(() -> new Exception("Task not found with id: " + taskId));
-
             task.setAssignedUserId(userId);
             task.setStatus(TaskStatus.DONE);
             Task updatedTask = dao.save(task);

@@ -65,14 +65,14 @@ public class TaskController {
         return new ResponseEntity<>(tasks, HttpStatus.OK);
     }
 
-    @PutMapping("/{id}/user/{userid}/assign")
+    @PutMapping("/{id}/user/{userid}/assigned")
     public ResponseEntity<Task> assignTaskToUser(
             @PathVariable long id,
             @PathVariable long userid,
             @RequestHeader("Authorization") String jwt) throws Exception {
         userService.getUserProfile(jwt);
         Task task = taskService.assignedToUser(id, userid);
-        return new ResponseEntity<>(task, HttpStatus.OK);
+        return new ResponseEntity<>(task, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -93,10 +93,7 @@ public class TaskController {
         Task task = taskService.completedTask(id);
         return new ResponseEntity<>(task, HttpStatus.OK);
     }
-
-
-
-
+    
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(

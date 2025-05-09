@@ -60,7 +60,7 @@ export const logout = createAsyncThunk('auth/logout', async () => {
   }
 });
 
-// 👤 GET PROFILE
+// 👤 GET PROFILE - Thêm lại action này nếu nó đã bị xóa
 export const getUserProfile = createAsyncThunk('auth/getUserProfile', async (jwt, { rejectWithValue }) => {
   setAuthHeader(jwt, api);
   try {
