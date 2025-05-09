@@ -18,7 +18,6 @@ const style = {
   width: 400,
   bgcolor: 'background.paper',
   outline: "none",
-
   boxShadow: 24,
   p: 2,
 };
@@ -32,8 +31,10 @@ export default function UserList({ handleClose, open }) {
   const taskId = queryParams.get("taskId");
 
   React.useEffect(() => {
-    dispatch(getUserList(localStorage.getItem("jwt")));
-  }, [dispatch]);
+    if (open) {
+      dispatch(getUserList(localStorage.getItem("jwt")));
+    }
+  }, [dispatch, open]);
 
   const handleAssignedTask = (user) => {
     dispatch(assignedTaskToUser({ userId: user.id, taskId }));
@@ -47,30 +48,35 @@ export default function UserList({ handleClose, open }) {
       aria-describedby="modal-modal-description"
     >
       <Box sx={style}>
-        {auth.users.map((user, index) => (
-          <React.Fragment key={user.id}>
-            <div className="flex items-center justify-between w-full">
-              <div>
-                <ListItem>
-                  <ListItemAvatar>
-                    <Avatar src="https://example.com/default-avatar.jpg" />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={user.fullName}
-                    secondary={`@${user.fullName.split(" ").join("_").toLowerCase()}`}
-                  />
-                </ListItem>
-              </div>
-              <div>
-                <Button onClick={() => handleAssignedTask(user)} className="customeButton">
-                  Select
-                </Button>
-              </div>
-            </div>
-            {index !== auth.users.length - 1 && <Divider variant="inset" />}
-          </React.Fragment>
-        ))}
-
+        {Array.isArray(auth.users) && auth.users.length > 0 ? (
+          auth.users.map((user, index) => (
+            user && (  // Thêm kiểm tra user tồn tại
+              <React.Fragment key={user.id || index}>
+                <div className="flex items-center justify-between w-full">
+                  <div>
+                    <ListItem>
+                      <ListItemAvatar>
+                        <Avatar src="https://example.com/default-avatar.jpg" />
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={user.fullName || "Người dùng"}
+                        secondary={`@${user.fullName ? user.fullName.split(" ").join("_").toLowerCase() : "user"}`}
+                      />
+                    </ListItem>
+                  </div>
+                  <div>
+                    <Button onClick={() => handleAssignedTask(user)} className="customeButton">
+                      Select
+                    </Button>
+                  </div>
+                </div>
+                {index !== auth.users.length - 1 && <Divider variant="inset" />}
+              </React.Fragment>
+            )
+          ))
+        ) : (
+          <div className="text-center p-4">Không có người dùng nào</div>
+        )}
       </Box>
     </Modal>
   );

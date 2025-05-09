@@ -1,10 +1,13 @@
-import React, { useState } from "react";
-import { TextField, Button } from "@mui/material";
-import { useDispatch } from "react-redux";
+import React, { useState, useEffect } from "react";
+import { TextField, Button, Alert } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
 import { login } from "../../../ReduxToolkit/AuthSlice";
 
 const LoginForm = ({ togglePanel }) => {
   const dispatch = useDispatch();
+  // Lấy trạng thái loading và error từ Redux store
+  const { loading, error } = useSelector((state) => state.auth);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -25,8 +28,8 @@ const LoginForm = ({ togglePanel }) => {
         value === ""
           ? "Email is required"
           : !/\S+@\S+\.\S+/.test(value)
-          ? "Please enter a valid email address"
-          : "";
+            ? "Please enter a valid email address"
+            : "";
     } else if (name === "password") {
       errorText = value === "" ? "Password is required" : "";
     }
@@ -36,13 +39,24 @@ const LoginForm = ({ togglePanel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(login(formData))
-    console.log("Login Form Submitted ", formData);
+    // Kiểm tra validation trước khi gửi
+    if (!errors.email && !errors.password && formData.email && formData.password) {
+      dispatch(login(formData));
+      console.log("Login Form Submitted ", formData);
+    }
   };
 
   return (
     <div className="">
       <h1 className="text-lg font-bold text-center pb-8 textStyle">Login</h1>
+
+      {/* Hiển thị thông báo lỗi đăng nhập */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Đăng nhập không thành công: Tài khoản hoặc mật khẩu không đúng
+        </Alert>
+      )}
+
       <form className="space-y-3" onSubmit={handleSubmit}>
         <TextField
           fullWidth
@@ -54,6 +68,7 @@ const LoginForm = ({ togglePanel }) => {
           error={!!errors.email}
           helperText={errors.email}
           placeholder="Enter your email"
+          disabled={loading}
         />
 
         <TextField
@@ -66,6 +81,7 @@ const LoginForm = ({ togglePanel }) => {
           error={!!errors.password}
           helperText={errors.password}
           placeholder="Enter your password"
+          disabled={loading}
         />
 
         <div>
@@ -76,8 +92,9 @@ const LoginForm = ({ togglePanel }) => {
             color="primary"
             type="submit"
             fullWidth
+            disabled={loading}
           >
-            Login
+            {loading ? "Đang đăng nhập..." : "Login"}
           </Button>
         </div>
       </form>
