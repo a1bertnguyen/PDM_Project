@@ -6,14 +6,13 @@ import TaskCard from "../Task/TaskCard/TaskCard";
 
 const TaskList = () => {
   const dispatch = useDispatch();
-  // Thêm submission vào useSelector để theo dõi các thay đổi
   const { task, auth, submission } = useSelector((store) => store);
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const filterValue = queryParams.get("filter");
 
-  // Thêm submission.status vào dependency array để khi trạng thái submission thay đổi, danh sách tasks sẽ được tải lại
+  // Load tasks khi component mount hoặc khi filter, role, hoặc submission status thay đổi
   useEffect(() => {
     if (auth.user?.role === "ROLE_ADMIN") {
       console.log("Loading tasks for admin with filter:", filterValue || "ALL");
@@ -28,15 +27,17 @@ const TaskList = () => {
     <div className="w-[67vw]">
       <div className="space-y-3">
         {task.loading ? (
-          // Thêm trạng thái loading
-          <div className="text-center py-4">Loading tasks...</div>
+          <div className="text-center py-4">
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
+            <p className="mt-2">Loading tasks...</p>
+          </div>
         ) : task.tasks && task.tasks.length > 0 ? (
-          // Hiển thị tasks nếu có
           task.tasks.map((item) => (
             <TaskCard key={item.id} item={item} />
           ))
         ) : (
-          // Hiển thị thông báo nếu không có tasks
           <div className="text-center py-4">
             {filterValue
               ? `No ${filterValue} tasks found`

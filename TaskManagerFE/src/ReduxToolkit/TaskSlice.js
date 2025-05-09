@@ -61,23 +61,6 @@ export const createNewTask = createAsyncThunk(
   }
 );
 
-// ✅ Complete task
-export const completeTask = createAsyncThunk(
-  "task/completeTask",
-  async (taskId) => {
-    setAuthHeader(localStorage.getItem("jwt"), api);
-    try {
-      console.log(`Calling API to complete task ${taskId}`);
-      const response = await api.put(`/api/tasks/${taskId}/complete`);
-      console.log(`API response for completing task:`, response.data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error completing task ${taskId}:`, error);
-      throw Error(error?.response?.data?.error || "Complete task failed");
-    }
-  }
-);
-
 // ✏️ Update task
 export const updateTask = createAsyncThunk(
   "task/updateTask",
@@ -116,6 +99,23 @@ export const deleteTask = createAsyncThunk(
       return id;
     } catch (error) {
       throw Error(error?.response?.data?.error || "Delete task failed");
+    }
+  }
+);
+
+// ✅ Complete task - Chuyển task sang trạng thái DONE
+export const completeTask = createAsyncThunk(
+  "task/completeTask",
+  async (taskId) => {
+    setAuthHeader(localStorage.getItem("jwt"), api);
+    try {
+      console.log(`Calling API to complete task ${taskId}`);
+      const response = await api.put(`/api/tasks/${taskId}/complete`);
+      console.log(`API response for completing task:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error completing task ${taskId}:`, error);
+      throw Error(error?.response?.data?.error || "Complete task failed");
     }
   }
 );
@@ -173,9 +173,10 @@ const taskSlice = createSlice({
           task.id === updated.id ? { ...task, ...updated } : task
         );
       })
+      // Thêm các reducer này vào trong phần extraReducers của taskSlice, trước dòng cuối cùng
+      // '.addCase(deleteTask.fulfilled, (state, action) => {'
 
       .addCase(completeTask.pending, (state) => {
-        // Thêm trạng thái pending nếu cần
         state.loading = true;
       })
 

@@ -1,45 +1,54 @@
-import React from "react";
+import React, { useState } from "react";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import { Button, IconButton } from "@mui/material";
+import { Button, IconButton, CircularProgress } from "@mui/material";
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { useDispatch } from "react-redux";
 import { acceptDeclineSubmission } from '../../../ReduxToolkit/SubmissionSlice';
-import { completeTask, fetchTasks } from '../../../ReduxToolkit/TaskSlice'; // Thêm import này
+import { completeTask, fetchTasks } from '../../../ReduxToolkit/TaskSlice';
 
 const SubmissionCard = ({ item }) => {
   const dispatch = useDispatch();
+  const [processing, setProcessing] = useState(false);
 
   const handleAcceptDecline = (status) => {
-    dispatch(acceptDeclineSubmission({ id: item.id, status }))
-      .unwrap()
-      .then(() => {
-        console.log("Submission status updated to:", status);
+    setProcessing(true);
 
-        // Nếu status là ACCEPTED, cập nhật task sang DONE
+    dispatch(acceptDeclineSubmission({ id: item.id, status }))
+      .then((result) => {
+        console.log("Submission status updated to:", status, result);
+
+        // Nếu status là ACCEPTED, update task sang DONE
         if (status === "ACCEPTED") {
-          dispatch(completeTask(item.taskId))
-            .then(() => {
-              console.log("Task marked as DONE");
-              // Tải lại danh sách tasks để cập nhật UI
-              dispatch(fetchTasks({}));
-            })
-            .catch(error => {
-              console.error("Error completing task:", error);
+          console.log("Marking task as DONE:", item.taskId);
+
+          // Completes the task
+          return dispatch(completeTask(item.taskId))
+            .then((completeResult) => {
+              console.log("Task marked as DONE:", completeResult);
+
+              // Tải lại danh sách task để cập nhật UI
+              return dispatch(fetchTasks({}));
             });
         }
+
+        return Promise.resolve();
+      })
+      .finally(() => {
+        setProcessing(false);
       })
       .catch(error => {
-        console.error("Error updating submission:", error);
+        console.error("Error handling submission:", error);
+        setProcessing(false);
       });
   };
+
   return (
     <div className='rounded-md bg-black p-5 flex items-center justify-between'>
       <div className='space-y-2'>
         <div className='flex items-center gap-2'>
           <span>GitHub:</span>
           <div className='flex items-center gap-2 text-[#c24dd0]'>
-
             <OpenInNewIcon />
             <a href={item.githubLink} target="_blank" rel="noopener noreferrer">
               Go To Link
@@ -53,12 +62,14 @@ const SubmissionCard = ({ item }) => {
       </div>
 
       <div>
-        {item.status === "PENDING" ? (
+        {processing ? (
+          <CircularProgress color="secondary" size={24} />
+        ) : item.status === "PENDING" ? (
           <div className="flex gap-5">
-            <IconButton color="success" onClick={() => handleAcceptDecline("ACCEPTED")}>
+            <IconButton color="success" onClick={() => handleAcceptDecline("ACCEPTED")} disabled={processing}>
               <CheckIcon />
             </IconButton>
-            <IconButton color="error" onClick={() => handleAcceptDecline("DECLINED")}>
+            <IconButton color="error" onClick={() => handleAcceptDecline("DECLINED")} disabled={processing}>
               <CloseIcon />
             </IconButton>
           </div>
