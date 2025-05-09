@@ -45,9 +45,26 @@ const SideBar = () => {
     setActiveMenu(item.name);
   };
 
+  // Cải tiến hàm logout 
   const handleLogout = () => {
+    console.log("Executing logout process");
+
+    // 1. Xóa trước tiên JWT token từ localStorage
+    localStorage.removeItem("jwt");
+    localStorage.removeItem("isAuthenticated");
+    localStorage.clear();
+
+    // 2. Sau đó dispatch action logout để cập nhật Redux state
     dispatch(logout());
-    console.log("handle logout");
+
+    // 3. Redirect về trang login
+    console.log("Redirecting to login page");
+
+    // 4. Lựa chọn 1: Sử dụng navigate từ react-router
+    // navigate("/");
+
+    // 5. Lựa chọn 2: Force reload để đảm bảo state được reset hoàn toàn
+    window.location.href = "/";
   };
 
   return (
@@ -68,9 +85,8 @@ const SideBar = () => {
             <p
               key={item.name}
               onClick={() => handleMenuChange(item)}
-              className={`py-3 px-5 rounded-full text-center cursor-pointer ${
-                activeMenu === item.name ? "activeMenuItem" : "menuItem"
-              }`}
+              className={`py-3 px-5 rounded-full text-center cursor-pointer ${activeMenu === item.name ? "activeMenuItem" : "menuItem"
+                }`}
             >
               {item.name}
             </p>

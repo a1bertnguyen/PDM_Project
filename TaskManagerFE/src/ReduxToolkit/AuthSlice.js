@@ -43,13 +43,20 @@ export const register = createAsyncThunk('auth/register', async (userData, { rej
   }
 });
 
-// 🚪 LOGOUT
+// 🚪 LOGOUT - cập nhật để xóa sạch localStorage
 export const logout = createAsyncThunk('auth/logout', async () => {
   try {
+    console.log("Executing logout action");
+    // Xóa tất cả dữ liệu trong localStorage
+    localStorage.removeItem("jwt");
+    localStorage.removeItem("isAuthenticated");
     localStorage.clear();
+
+    // Dispatch thành công
     return true;
   } catch (error) {
-    throw Error("Logout failed");
+    console.error("Logout error:", error);
+    throw new Error("Logout failed");
   }
 });
 
@@ -62,7 +69,8 @@ export const getUserProfile = createAsyncThunk('auth/getUserProfile', async (jwt
     return response.data;
   } catch (error) {
     console.log("❌ get profile error", error);
-    return rejectWithValue(error?.response?.data?.error || "Get profile failed");
+    localStorage.removeItem("jwt"); // Remove invalid token
+    return rejectWithValue(error?.response?.data?.error || "Failed to get profile");
   }
 });
 
@@ -87,15 +95,39 @@ const authSlice = createSlice({
     loading: false,
     error: null,
     jwt: null,
-    users: []
+    users: [],
+    lastAction: null
   },
-  reducers: {},
+  reducers: {
+    clearError: (state) => {
+      state.error = null;
+    },
+    logAuthState: (state) => {
+      console.log("Current auth state:", {
+        user: state.user ? "EXISTS" : "NULL",
+        loggedIn: state.loggedIn,
+        error: state.error,
+        jwt: state.jwt ? "[TOKEN EXISTS]" : null
+      });
+    },
+    resetAuthState: (state) => {
+      // Reset state thủ công để đảm bảo mọi giá trị được xóa sạch
+      state.user = null;
+      state.loggedIn = false;
+      state.loading = false;
+      state.error = null;
+      state.jwt = null;
+      state.users = [];
+      state.lastAction = "resetAuthState";
+    }
+  },
   extraReducers: (builder) => {
     builder
       // LOGIN
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.lastAction = "login.pending";
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
@@ -103,77 +135,100 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.loggedIn = true;
         state.error = null;
+        state.lastAction = "login.fulfilled";
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Đăng nhập không thành công";
+        state.error = action.payload || "Invalid email or password";
         state.jwt = null;
         state.user = null;
         state.loggedIn = false;
+        state.lastAction = "login.rejected";
       })
 
       // REGISTER
       .addCase(register.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.lastAction = "register.pending";
       })
       .addCase(register.fulfilled, (state, action) => {
         state.loading = false;
         state.jwt = action.payload.jwt;
         state.user = action.payload;
         state.loggedIn = true;
+        state.error = null;
+        state.lastAction = "register.fulfilled";
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload || action.error.message;
+        state.loggedIn = false;
+        state.lastAction = "register.rejected";
       })
 
       // GET PROFILE
       .addCase(getUserProfile.pending, (state) => {
         state.loading = true;
-        state.error = null;
+        state.lastAction = "getUserProfile.pending";
       })
       .addCase(getUserProfile.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload;
         state.loggedIn = true;
+        state.error = null;
+        state.lastAction = "getUserProfile.fulfilled";
       })
       .addCase(getUserProfile.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload || action.error.message;
         state.user = null;
         state.loggedIn = false;
+        state.jwt = null;
+        state.lastAction = "getUserProfile.rejected";
       })
 
       // LOGOUT
       .addCase(logout.pending, (state) => {
         state.loading = true;
-        state.error = null;
+        state.lastAction = "logout.pending";
       })
       .addCase(logout.fulfilled, (state) => {
         state.loading = false;
         state.user = null;
         state.jwt = null;
         state.loggedIn = false;
-        state.users = []; // Reset users về mảng rỗng
+        state.users = [];
+        state.error = null;
+        state.lastAction = "logout.fulfilled";
       })
       .addCase(logout.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
+        state.lastAction = "logout.rejected";
+        // Vẫn xóa thông tin đăng nhập kể cả khi có lỗi
+        state.user = null;
+        state.jwt = null;
+        state.loggedIn = false;
       })
 
       // GET USER LIST
       .addCase(getUserList.pending, (state) => {
         state.loading = true;
+        state.lastAction = "getUserList.pending";
       })
       .addCase(getUserList.fulfilled, (state, action) => {
         state.loading = false;
         state.users = Array.isArray(action.payload) ? action.payload : [];
+        state.lastAction = "getUserList.fulfilled";
       })
       .addCase(getUserList.rejected, (state) => {
         state.loading = false;
-        state.users = []; // Reset users về mảng rỗng khi gặp lỗi
+        state.users = [];
+        state.lastAction = "getUserList.rejected";
       });
   },
 });
+
+export const { clearError, logAuthState, resetAuthState } = authSlice.actions;
 export default authSlice.reducer;
