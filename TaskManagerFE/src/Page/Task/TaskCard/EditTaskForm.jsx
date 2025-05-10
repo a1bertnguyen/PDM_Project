@@ -1,0 +1,173 @@
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Modal from '@mui/material/Modal';
+import { useState, useEffect } from 'react';
+import { Autocomplete, Grid, TextField } from '@mui/material';
+import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+import { useDispatch, useSelector } from 'react-redux';
+import { createNewTask, fetchTaskById, updateTask } from '../../../ReduxToolkit/TaskSlice';
+
+import { useLocation } from 'react-router-dom';
+
+
+const style = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  outline: "none",
+  boxShadow: 24,
+  p: 4,
+};
+
+const tags = ["Angular", "React", "Vuejs", "Spring boot", "Node js", "Python"];
+
+export default function EditTaskForm({ handleClose, open }) {
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const taskId = queryParams.get("taskId");
+
+  const { task } = useSelector((store) => store);
+
+  const [formData, setFormData] = useState({
+    title: "",
+    image: "",
+    description: "",
+    tags: [],
+    deadline: dayjs(),
+
+  });
+
+  const [selectedTags, setSelectedTags] = useState([]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleTagsChange = (_, value) => {
+    setSelectedTags(value.filter((tag) => tags.includes(tag)));
+  };
+
+  const handleDeadlineChange = (date) => {
+    setFormData((prev) => ({
+      ...prev,
+      deadline: date,
+    }));
+  };
+
+  const formatDate = (input) => {
+    return input?.toISOString ? input.toISOString() : new Date(input).toISOString();
+
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const updatedData = {
+      ...formData,
+      deadline: formatDate(formData.deadline),
+      tags: selectedTags,
+    };
+    dispatch(updateTask({ id: taskId, updatedTaskData: updatedData }));
+    handleClose();
+  };
+
+  useEffect(() => {
+    if (taskId) {
+      dispatch(fetchTaskById(taskId));
+    }
+  }, [taskId, dispatch]);
+
+  useEffect(() => {
+    if (task.taskDetails) {
+      setFormData({
+        ...task.taskDetails,
+        deadline: dayjs(task.taskDetails.deadline),
+      });
+      setSelectedTags(task.taskDetails.tags || []);
+    }
+  }, [task.taskDetails]);
+
+  return (
+    <Modal open={open} onClose={handleClose} aria-labelledby="edit-task-modal" aria-describedby="edit-task-form">
+      <Box sx={style}>
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12}>
+              <TextField
+                label="Title"
+                fullWidth
+                name="title"
+
+                value={formData.title}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Image"
+                fullWidth
+                name="image"
+
+                value={formData.image}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Description"
+                fullWidth
+                multiline
+                rows={4}
+                name="description"
+
+                value={formData.description}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Autocomplete
+                multiple
+                options={tags}
+                value={selectedTags}
+                onChange={handleTagsChange}
+                getOptionLabel={(option) => option}
+                renderInput={(params) => <TextField {...params} label="Tags" fullWidth />}
+
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DateTimePicker
+                  label="Deadline"
+                  value={formData.deadline}
+                  onChange={handleDeadlineChange}
+                  renderInput={(params) => <TextField {...params} fullWidth />}
+                />
+              </LocalizationProvider>
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                fullWidth
+                className="customButton"
+                type="submit"
+
+                sx={{ padding: ".9rem" }}
+              >
+                Update
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
+      </Box>
+    </Modal>
+  );
+}

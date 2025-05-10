@@ -1,0 +1,23 @@
+.menuItem{
+    
+    border: 2px solid #c24dd0;
+}
+
+
+
+.activeMenuItem{
+    color: white ;
+    background-image: linear-gradient(135deg, #c24dd0, #7a72fa);
+    /* background: transparent; */
+}
+
+.logoutButton{
+    color: white !important;
+    background-image: linear-gradient(135deg, #c24dd0, #ff005d);
+    /* background: transparent; */
+  }
+  .customeButton{
+    color: white !important;
+    background-image: linear-gradient(150deg, #c24dd0, #7a72fa);
+    
+  }
